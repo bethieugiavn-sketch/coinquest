@@ -1,4 +1,4 @@
-import {FORMS,WORLDS,evolutionAt} from './evolution.js';
+import {FORMS,WORLDS,evolutionAt,STYLES,GEAR_LEVELS,gearAt,styleAt} from './evolution.js';
 import {initWorld} from './world.js';
 import { App } from '@capacitor/app';
 import { createSloganRotator } from './slogans.js';
@@ -11,6 +11,7 @@ import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { createStore } from './storage.js';
 'use strict';
+let chosenStyle='wood',styleSaving=false;
 const KEY='coinquest.v1', $=id=>document.getElementById(id), money=n=>new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(n);
 const dayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 function previousDay(day){const d=new Date(day+'T12:00:00');d.setDate(d.getDate()-1);return dayKey(d)}
@@ -34,10 +35,10 @@ async function spin(type){if(rolling)return;if(activeQuest()&&!activeQuest().don
 function celebrate(levelUp){if(levelUp){$('heroStage').classList.remove('level-flash');void $('heroStage').offsetWidth;$('heroStage').classList.add('level-flash')}void feedback(levelUp);if(typeof confetti==='function'&&!matchMedia('(prefers-reduced-motion: reduce)').matches)confetti({particleCount:levelUp?180:90,spread:80,origin:{y:.65},colors:['#b9f574','#b997ff','#f6cd75']})}
 async function confirmQuest(){if(rolling)return;const q=activeQuest();if(!q||q.done||state.history.some(h=>h.id===q.id))return;const before=stats().level,next=structuredClone(state),record={...q,done:true};next[q.type]=record;next.history.push(record);if(!await commit(next))return;render();const up=stats().level>before;celebrate(up);toast(up?`Lên cấp ${stats().level}! +${q.amount/1000} XP 🎉`:`Đã tích lũy ${money(q.amount)} · +${q.amount/1000} XP ✦`)}
 function renderHero(level){
- const e=evolutionAt(level);window.tichLocLevel=level;
- $('heroStage').dataset.tier=e.tier;$('heroTitle').textContent=e.name+' · Cấp '+level;
+ const e=evolutionAt(level),style=styleAt(chosenStyle,level);window.tichLocLevel=level;window.tichLocStyle=style.id;
+ $('heroStage').dataset.tier=e.tier;$('heroTitle').textContent=e.name+' · '+style.name+' · Cấp '+level;
  $('heroRank').textContent=e.stars?'✦ Tinh tú '+e.stars:'BẬC '+(e.tier+1);
- $('avatarBadge').textContent=e.icon;
+ $('avatarBadge').textContent=style.icon;$('styleHint').textContent=style.name+' · '+style.gear[gearAt(level)]+(gearAt(level)<3?' · Nâng tiếp ở cấp '+GEAR_LEVELS[gearAt(level)+1]:' · Trang bị bậc IV');
  $('heroStage').querySelector('.stage-name .eyebrow').textContent=WORLDS[e.world];
  $('returnHero').classList.add('hidden');
  window.dispatchEvent(new CustomEvent('tichloc:level',{detail:{level}}));
@@ -48,7 +49,7 @@ function renderHero(level){
  const forms=e.tier<21?FORMS.slice(Math.max(0,e.tier-1),Math.max(0,e.tier-1)+4):FORMS.slice(20);
  for(const f of forms){const n=document.createElement('div');n.className='evo-node'+(level>=f.level?' unlocked':'');const icon=document.createElement('span');icon.textContent=f.icon;const name=document.createElement('p');name.className='evo-name';name.textContent=f.name;const label=document.createElement('p');label.textContent='Cấp '+f.level;n.append(icon,name,label);track.append(n)}
 }
-function showCollection(){const current=stats().level,root=$('collectionGrid');root.replaceChildren();for(let world=0;world<6;world++){const label=document.createElement('p');label.className='collection-label';label.textContent=WORLDS[world];root.append(label);const grid=document.createElement('div');grid.className='collection-grid';FORMS.slice(world*4,world*4+4).forEach(f=>{const card=document.createElement('button');card.className='collection-card'+(current>=f.level?' unlocked':'');const icon=document.createElement('span');icon.className='form-icon';icon.textContent=f.icon;const title=document.createElement('strong');title.textContent=f.name;const hint=document.createElement('small');hint.textContent='Cấp '+f.level+' · '+(current>=f.level?'Đã mở':'Xem trước');card.append(icon,title,hint);card.onclick=()=>{const e=evolutionAt(f.level);$('collectionDialog').close();$('heroTitle').textContent='Xem trước · '+f.name;$('heroStage').querySelector('.stage-name .eyebrow').textContent=WORLDS[e.world];$('heroRank').textContent='CẤP '+f.level;$('returnHero').classList.remove('hidden');window.dispatchEvent(new CustomEvent('tichloc:level',{detail:{level:f.level}}));showView('dashboard');$('heroStage').scrollIntoView({behavior:'smooth',block:'center'});};grid.append(card)});root.append(grid)}$('collectionDialog').showModal()}
+function showCollection(){const current=stats().level,root=$('collectionGrid');root.replaceChildren();for(let world=0;world<6;world++){const label=document.createElement('p');label.className='collection-label';label.textContent=WORLDS[world];root.append(label);const grid=document.createElement('div');grid.className='collection-grid';FORMS.slice(world*4,world*4+4).forEach(f=>{const card=document.createElement('button');card.className='collection-card'+(current>=f.level?' unlocked':'');const icon=document.createElement('span');icon.className='form-icon';icon.textContent=f.icon;const title=document.createElement('strong');title.textContent=f.name;const hint=document.createElement('small');hint.textContent='Cấp '+f.level+' · '+(current>=f.level?'Đã mở':'Xem trước');card.append(icon,title,hint);card.onclick=()=>{const e=evolutionAt(f.level);$('collectionDialog').close();$('heroTitle').textContent='Xem trước · '+f.name;$('heroStage').querySelector('.stage-name .eyebrow').textContent=WORLDS[e.world];$('heroRank').textContent='CẤP '+f.level;$('returnHero').classList.remove('hidden');window.dispatchEvent(new CustomEvent('tichloc:level',{detail:{level:f.level,style:styleAt(chosenStyle,stats().level).id}}));showView('dashboard');$('heroStage').scrollIntoView({behavior:'smooth',block:'center'});};grid.append(card)});root.append(grid)}$('collectionDialog').showModal()}
 $('collectionBtn').onclick=showCollection;$('closeCollection').onclick=()=>$('collectionDialog').close();$('returnHero').onclick=()=>renderHero(stats().level);
 $('copyTransfer').onclick=async()=>{const q=activeQuest();if(!q)return;const text=state.settings.bankId+' | '+state.settings.account+' | '+money(q.amount)+' | Tiet kiem ngay '+q.day;try{await navigator.clipboard.writeText(text);toast('Đã sao chép thông tin chuyển khoản.')}catch{toast('Không sao chép được. Bạn có thể lưu ảnh QR để chuyển tiền.')}};
 function toggleQrFields(){for(const id of ['bankId','account'])$(id).required=$('qrEnabled').checked}
@@ -86,4 +87,11 @@ if(Capacitor.isNativePlatform()){
   window.addEventListener('pageshow',e=>{if(e.persisted)void refreshSlogan()});
 }
 
+async function saveStyle(id){await Preferences.set({key:'coinquest.style.v1',value:id})}
+async function loadStyle(){try{const saved=(await Preferences.get({key:'coinquest.style.v1'})).value;chosenStyle=styleAt(saved,stats().level).id;renderHero(stats().level)}catch{}}
+
+function showStyles(){const level=stats().level,root=$('styleGrid');root.replaceChildren();for(const style of STYLES){const unlocked=level>=style.unlock,active=styleAt(chosenStyle,level).id===style.id;const card=document.createElement('article');card.className='style-card'+(active?' active-style':'');const title=document.createElement('h3');title.textContent=style.icon+' '+style.name+(active?' · Đang dùng':'');const status=document.createElement('p');status.textContent=unlocked?'Đã mở · Trang bị: '+style.gear[gearAt(level)]:'Mở ở cấp '+style.unlock;const list=document.createElement('ol');style.gear.forEach((gear,i)=>{const row=document.createElement('li');row.textContent='Cấp '+GEAR_LEVELS[i]+': '+gear;row.className=level>=GEAR_LEVELS[i]&&unlocked?'gear-open':'';list.append(row)});const actions=document.createElement('div');actions.className='style-actions';const preview=document.createElement('button');preview.className='secondary';preview.textContent='Xem trước';preview.onclick=()=>{const e=evolutionAt(level);$('styleDialog').close();$('heroTitle').textContent='Xem trước · '+style.name+' · '+style.gear[gearAt(level)];$('heroRank').textContent=unlocked?'XEM TRƯỚC':'MỞ Ở CẤP '+style.unlock;$('returnHero').classList.remove('hidden');window.dispatchEvent(new CustomEvent('tichloc:level',{detail:{level,style:style.id}}));showView('dashboard');$('heroStage').scrollIntoView({behavior:'smooth',block:'center'})};const apply=document.createElement('button');apply.className='primary';apply.textContent=active?'Đang dùng':unlocked?'Dùng kiểu này':'Cấp '+style.unlock+' mới mở';apply.disabled=!unlocked||active;apply.onclick=async()=>{if(styleSaving)return;styleSaving=true;try{await saveStyle(style.id);chosenStyle=style.id;$('styleDialog').close();renderHero(stats().level);toast('Đã chọn nhánh '+style.name)}catch{toast('Chưa lưu được nhánh ngoại hình. Vui lòng thử lại.')}finally{styleSaving=false}};actions.append(preview,apply);card.append(title,status,list,actions);root.append(card)}$('styleDialog').showModal()}
+$('styleBtn').onclick=showStyles;$('closeStyle').onclick=()=>$('styleDialog').close();
+
+await loadStyle();
 try{initWorld($('heroStage'))}catch{/* Hình 2D vẫn hiển thị nếu thiết bị không hỗ trợ 3D. */}
