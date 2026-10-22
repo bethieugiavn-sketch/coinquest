@@ -28,5 +28,5 @@ if (process.argv.includes('--audit')) {
   // contacts, accessibility, storage or notification permissions are requested.
   writeFileSync(path, xml);
   const gradle = 'android/app/build.gradle';
-  writeFileSync(gradle, readFileSync(gradle, 'utf8').replace('versionCode 1', 'versionCode 2').replace('versionName "1.0"', 'versionName "1.1.0"'));
+  writeFileSync(gradle, readFileSync(gradle, 'utf8').replace('versionCode 1', 'versionCode 3').replace('versionName "1.0"', 'versionName "1.2.0"'));
 }

@@ -1,3 +1,5 @@
+import { App } from '@capacitor/app';
+import { createSloganRotator } from './slogans.js';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import './styles.css';
@@ -51,3 +53,17 @@ async function finishWelcome(openSettings){try{await Preferences.set({key:'coinq
 $('startFree').onclick=()=>finishWelcome(false);$('startQr').onclick=()=>finishWelcome(true);
 async function welcome(){try{if((await Preferences.get({key:'coinquest.welcome.v1'})).value!=='seen')$('welcomeDialog').showModal()}catch{$('welcomeDialog').showModal()}}
 void welcome();
+
+const slogans = createSloganRotator({
+  async get(key) { return (await Preferences.get({key})).value; },
+  async set(key,value) { await Preferences.set({key,value}); }
+});
+async function refreshSlogan(){ $('dailySlogan').textContent = await slogans.next(); }
+await refreshSlogan();
+if(Capacitor.isNativePlatform()){
+  let wasActive=true;
+  try{await App.addListener('appStateChange',({isActive})=>{if(isActive&&!wasActive)void refreshSlogan();wasActive=isActive;});}catch{document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refreshSlogan()});}
+}else{
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refreshSlogan()});
+  window.addEventListener('pageshow',e=>{if(e.persisted)void refreshSlogan()});
+}
