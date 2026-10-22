@@ -19,7 +19,7 @@ header{padding:20px 4px!important}h1{font-size:25px!important;line-height:1.25}h
 <div class="max-w-5xl mx-auto px-5 md:px-8 pb-28">
 <header class="flex items-center justify-between py-7 border-b border-slate-800 gap-3"><a href="#" class="flex items-center gap-3 no-underline text-white"><span class="w-10 h-10 rounded-xl bg-lime-300 text-slate-900 grid place-items-center font-black text-2xl">¢</span><span class="font-black text-xl tracking-tight">Tích Lộc<span class="block eyebrow muted mt-1" style="font-size:8px">Tích nhỏ · Thành lớn</span></span></a><button class="secondary text-sm" id="settingsBtn" aria-label="Mở cài đặt">⚙ <span>Cài đặt</span></button></header>
 <main>
-<div class="flex items-end justify-between gap-3 mt-8 mb-6"><div><p class="eyebrow muted mb-2">Hành trình của bạn</p><h1 class="text-2xl md:text-3xl font-bold">Mỗi ngày, giàu hơn một chút<span class="text-lime-300">.</span></h1></div><span class="badge hidden md:block">✦ SAVING ADVENTURE</span></div>
+<div class="flex items-end justify-between gap-3 mt-8 mb-6"><div><p class="eyebrow muted mb-2">Hành trình của bạn</p><h1 id="dailySlogan" class="text-2xl md:text-3xl font-bold" aria-live="polite" style="min-height:3.75em">Mỗi ngày, giàu hơn một chút.</h1></div><span class="badge hidden md:block">✦ SAVING ADVENTURE</span></div>
 <section id="dashboard"><section class="stage" id="heroStage" aria-label="Nhân vật tiến hóa"><div class="stage-name"><p class="eyebrow" style="color:#e2eeb1">Khu rừng tích lũy</p><p id="heroTitle" class="text-xs muted mt-1">Mầm non · Cấp 1</p></div><div class="fireflies"></div><svg class="hero-art" viewBox="0 0 180 200" role="img" aria-label="Linh thú mầm cây"><ellipse cx="90" cy="185" rx="53" ry="8" fill="#081b12"/><path d="M52 122L30 150 47 160 64 145M128 122L150 147 137 160 118 145" fill="#82b85a" stroke="#264727" stroke-width="5"/><path d="M65 158L60 182 79 182 85 163M103 162L108 182 127 182 119 155" fill="#638f45" stroke="#264727" stroke-width="5"/><path d="M43 91Q40 40 90 37Q143 40 139 91L132 145Q124 170 90 170Q56 170 48 145Z" fill="#b1d078" stroke="#264727" stroke-width="5"/><path d="M48 90Q90 68 136 90L130 134Q90 151 50 133" fill="#e9edac"/><ellipse cx="70" cy="108" rx="6" ry="9" fill="#183725"/><ellipse cx="111" cy="108" rx="6" ry="9" fill="#183725"/><circle cx="68" cy="105" r="2" fill="white"/><circle cx="109" cy="105" r="2" fill="white"/><path d="M83 122Q91 129 99 122" fill="none" stroke="#264727" stroke-width="3" stroke-linecap="round"/><ellipse cx="58" cy="120" rx="8" ry="4" fill="#e5a17b"/><ellipse cx="122" cy="120" rx="8" ry="4" fill="#e5a17b"/><path d="M90 43Q65 44 61 14Q91 10 94 38Q107 9 131 17Q128 44 90 43" fill="#8dd66c" stroke="#264727" stroke-width="4"/><path d="M89 49L92 25" stroke="#416b32" stroke-width="4"/><path d="M55 146Q90 163 126 146L124 156Q90 179 56 157Z" fill="#537c42"/><circle cx="91" cy="151" r="11" fill="#e8bd5c" stroke="#766130" stroke-width="3"/><path d="M91 144V158M95 146H88V151H95V156H87" stroke="#80602b" stroke-width="2" fill="none"/></svg><span class="badge" id="heroRank" style="position:absolute;right:12px;bottom:12px;z-index:3">BẬC I</span></section>
 <div class="grid md:grid-cols-[1.4fr_1fr] gap-4 mb-5">
 <article class="panel"><div class="flex gap-4 items-center"><div id="avatarBadge" class="text-4xl w-16 h-16 rounded-2xl bg-lime-300/10 grid place-items-center" aria-hidden="true">🌱</div><div class="flex-1"><p class="eyebrow text-violet-300 mb-1">Nhà thám hiểm tài chính</p><h2 class="font-bold text-xl">Người tích lũy <span id="level" class="text-violet-300">Lv. 1</span></h2></div></div><div class="flex justify-between text-xs mt-6 mb-2"><span class="muted">Kinh nghiệm cấp hiện tại</span><span id="xpLabel">0 / 500 XP</span></div><div id="xpBar" class="progress" role="progressbar" aria-label="Kinh nghiệm" aria-valuemin="0" aria-valuemax="500"><div id="xpFill" style="width:0%"></div></div><p class="muted text-xs mt-3" id="nextLevel"></p></article>
@@ -77,6 +77,126 @@ async function finishWelcome(openSettings){try{localStorage.setItem('coinquest.w
 $('startFree').onclick=()=>finishWelcome(false);$('startQr').onclick=()=>finishWelcome(true);
 async function welcome(){try{if(localStorage.getItem('coinquest.welcome.v1')!=='seen')$('welcomeDialog').showModal()}catch{$('welcomeDialog').showModal()}}
 void welcome();
+const SLOGANS = Object.freeze([
+  'Mỗi ngày, giàu hơn một chút.',
+  'Gieo một đồng nhỏ, nuôi một ước mơ lớn.',
+  'Hôm nay dành dụm, ngày mai an tâm.',
+  'Chậm một chút cũng được, miễn là bạn vẫn bước.',
+  'Một khoản nhỏ hôm nay là món quà cho tương lai.',
+  'Bạn đang làm tốt hơn mình tưởng đấy.',
+  'Tưới chút kiên trì, mầm lộc sẽ lớn.',
+  'Không cần thật nhiều, chỉ cần thật đều.',
+  'Từng đồng bạn giữ lại đều có ý nghĩa.',
+  'Tương lai sẽ cảm ơn bạn của hôm nay.',
+  'Một bước nhỏ vẫn là một bước tiến.',
+  'Thói quen tốt bắt đầu từ lần đầu tiên.',
+  'Cây lớn từ mầm, quỹ đầy từ tiền lẻ.',
+  'Dành một chút cho điều bạn mong chờ.',
+  'Tiền lẻ có thể nhỏ, ước mơ thì không.',
+  'Hôm nay bạn đã chọn chăm sóc tương lai.',
+  'Đều đặn một chút, nhẹ lòng một chút.',
+  'Bạn không cần vội để đi được xa.',
+  'Mỗi lần bỏ ống heo là một lần giữ lời với mình.',
+  'Một ngày mới, một cơ hội vun đầy chiếc hũ.',
+  'Hành trình của bạn không cần giống ai khác.',
+  'Gom niềm tin từ những việc nhỏ mỗi ngày.',
+  'Tiết kiệm theo sức mình, tiến lên theo nhịp mình.',
+  'Hãy để đồng tiền nhỏ làm nên việc lớn.',
+  'Một chút hôm nay, bớt lo ngày tới.',
+  'Mầm xanh cần thời gian, bạn cũng vậy.',
+  'Kiên trì là món tài sản bạn đang có.',
+  'Chúc chiếc hũ hôm nay thêm đầy một chút.',
+  'Điều đáng tự hào là bạn vẫn đang cố gắng.',
+  'Bắt đầu lại cũng là một cách tiến lên.',
+  'Một ngày bỏ lỡ không xóa đi cả hành trình.',
+  'Lộc nhỏ mỗi ngày, niềm vui mỗi bước.',
+  'Hãy dành một góc ngân sách cho ước mơ.',
+  'Hũ nhỏ hôm nay, điểm tựa ngày mai.',
+  'Bạn đang nuôi một thói quen đáng quý.',
+  'Không cần hoàn hảo, chỉ cần tiếp tục.',
+  'Đồng tiền để dành là một lựa chọn cho mình.',
+  'Hôm nay gom lộc, ngày mai đón điều hay.',
+  'Tích từng chút bình yên cho những ngày sắp tới.',
+  'Giỏi lắm, bạn đã quay lại rồi!',
+  'Mỗi lần trở lại là một cơ hội làm tốt hơn.',
+  'Ước mơ lớn thích những bước nhỏ bền bỉ.',
+  'Cùng tưới mầm lộc của bạn hôm nay nhé.',
+  'Một đồng không mua được tất cả, nhưng có thể mở đầu.',
+  'Dành dụm là cách bạn nói thương tương lai.',
+  'Đừng so chiếc hũ của mình với chiếc hũ của ai.',
+  'Tích lũy không phải cuộc đua, cứ đi theo sức mình.',
+  'Ngày hôm nay là nơi thói quen được xây nên.',
+  'Cứ vun trồng, rồi bạn sẽ thấy mình đổi khác.',
+  'Số tiền nhỏ, sự chủ động lớn.',
+  'Chăm một mầm xanh, chăm một tương lai.',
+  'Hũ tiết kiệm đang chờ một câu chuyện mới.',
+  'Bền bỉ hôm nay, vững vàng hơn ngày tới.',
+  'Mỗi khoản để dành đều là một thành tựu.',
+  'Bạn đang cho ước mơ thêm một cơ hội.',
+  'Chút tiền lẻ, chút niềm vui, chút an tâm.',
+  'Gom những điều nhỏ để đến gần điều lớn.',
+  'Đi chậm vẫn tốt hơn đứng yên vì lo lắng.',
+  'Tiết kiệm vừa đủ, sống vui mỗi ngày.',
+  'Bạn xứng đáng có một quỹ dành riêng cho mình.',
+  'Nhỏ mà đều, lâu mà bền.',
+  'Đừng quên ghi nhận nỗ lực của chính mình.',
+  'Hôm nay lại thêm một chiếc lá cho mầm lộc.',
+  'Tương lai được chăm bằng những lựa chọn hôm nay.',
+  'Một khoản nhỏ có thể bắt đầu một đổi thay.',
+  'Hãy để kiên nhẫn đồng hành cùng chiếc hũ.',
+  'Mỗi ngày một ít, mỗi tháng một bất ngờ.',
+  'Có thể chưa nhiều, nhưng đã hơn hôm qua.',
+  'Tích lũy cả tiền lẻ lẫn niềm tin vào mình.',
+  'Một khởi đầu nhỏ vẫn rất đáng tự hào.',
+  'Bạn đã dành thời gian cho tương lai của mình.',
+  'Chọn một mục tiêu nhỏ và cùng đi tiếp nhé.',
+  'Đủ kiên trì, từng chút cũng thành một hành trình.',
+  'Chiếc hũ này được lấp đầy bằng sự quan tâm.',
+  'Hôm nay chăm quỹ, ngày mai thêm lựa chọn.',
+  'Tiền lẻ có một ngôi nhà, ước mơ có một điểm tựa.',
+  'Tích lộc vừa sức, vui sống mỗi ngày.',
+  'Mỗi lần tiết kiệm là một lần bạn chủ động hơn.',
+  'Mầm lộc của bạn đang lớn theo cách riêng.',
+  'Cảm ơn bạn đã không quên mục tiêu của mình.',
+]);
+
+// A persisted shuffle bag: all phrases appear once before the next cycle.
+// A separate key keeps motivation history out of financial data and JSON backups.
+function createSloganRotator(storage, random = Math.random) {
+  const key = 'coinquest.slogans.v1';
+  let queue = Promise.resolve(), memory = null, loaded = false;
+  async function next() {
+    let record = memory;
+    if (!loaded) { loaded = true; try { const raw = await storage.get(key); if (raw) record = JSON.parse(raw); } catch {} }
+    const valid = record && record.count === SLOGANS.length && Array.isArray(record.remaining)
+      && record.remaining.every(i => Number.isInteger(i) && i >= 0 && i < SLOGANS.length)
+      && new Set(record.remaining).size === record.remaining.length
+      && Number.isInteger(record.last) && record.last >= 0 && record.last < SLOGANS.length
+      && !record.remaining.includes(record.last);
+    if (!valid || record.remaining.length === 0) {
+      const last = Number.isInteger(record?.last) ? record.last : -1;
+      const remaining = SLOGANS.map((_, i) => i);
+      for (let i = remaining.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+      }
+      if (remaining.at(-1) === last) [remaining[0], remaining[remaining.length - 1]] = [remaining.at(-1), remaining[0]];
+      record = { count: SLOGANS.length, remaining, last };
+    }
+    const index = record.remaining.pop();
+    record.last = index;
+    memory = record;
+    try { await storage.set(key, JSON.stringify(record)); } catch {}
+    return SLOGANS[index];
+  }
+  return { next() { const result = queue.then(next); queue = result.catch(() => {}); return result; } };
+}
+
+const slogans=createSloganRotator({async get(key){return localStorage.getItem(key)},async set(key,value){localStorage.setItem(key,value)}});
+async function refreshSlogan(){ $('dailySlogan').textContent=await slogans.next(); }
+void refreshSlogan();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refreshSlogan()});
+window.addEventListener('pageshow',e=>{if(e.persisted)void refreshSlogan()});
 </script>
 </body>
 </html>
