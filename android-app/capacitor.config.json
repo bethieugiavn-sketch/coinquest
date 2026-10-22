@@ -1,6 +1,6 @@
 {
   "appId": "io.github.bethieugiavn.coinquest",
-  "appName": "CoinQuest",
+  "appName": "Tích Lộc",
   "webDir": "dist",
   "android": {
     "backgroundColor": "#091310"
