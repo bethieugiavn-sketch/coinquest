@@ -15,11 +15,12 @@ export function configureGradle(src,release,signed=false){
  if(signed)src+="\napply from: 'release-signing.gradle'\n";
  return src;
 }
-export function auditManifest(xml){
+export function auditManifest(xml,{release=true}={}){
  const names=[...xml.matchAll(/<uses-permission\b[^>]*android:name="([^"]+)"/g)].map(m=>m[1]);
  const allowed=new Set(['android.permission.INTERNET','android.permission.VIBRATE','io.github.bethieugiavn.coinquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION']);
  for(const n of names)assert.ok(allowed.has(n),`Unexpected permission: ${n}`);
- assert.ok(!/BIND_ACCESSIBILITY_SERVICE|android:debuggable="true"/.test(xml));
+ assert.ok(!/BIND_ACCESSIBILITY_SERVICE/.test(xml));
+ if(release)assert.ok(!/android:debuggable="true"/.test(xml));
  assert.match(xml,/android:allowBackup="false"/);assert.match(xml,/android:usesCleartextTraffic="false"/);
  return names;
 }

@@ -6,7 +6,7 @@ if(process.argv.includes('--audit')){
  const variant=process.argv.includes('--release')?'release':'debug';
  function find(path){for(const e of readdirSync(path,{withFileTypes:true})){const p=path+'/'+e.name;if(e.isDirectory()){const result=find(p);if(result)return result}else if(e.name==='AndroidManifest.xml'&&p.toLowerCase().includes('/'+variant+'/'))return p}}
  const path=find('android/app/build/intermediates/merged_manifests');assert.ok(path,'Merged manifest missing for '+variant);
- console.log('Manifest audit passed:',auditManifest(readFileSync(path,'utf8')).join(', '));
+ console.log('Manifest audit passed:',auditManifest(readFileSync(path,'utf8'),{release:variant==='release'}).join(', '));
 }else{
  const signed=process.argv.includes('--release');
  if(signed)for(const n of ['TICHLOC_KEYSTORE_PATH','TICHLOC_STORE_PASSWORD','TICHLOC_KEY_ALIAS','TICHLOC_KEY_PASSWORD'])assert.ok(process.env[n],`Missing ${n}`);

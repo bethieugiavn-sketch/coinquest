@@ -10,3 +10,5 @@ test('release permissions reject debug, backup, cleartext and unexpected permiss
  assert.deepEqual(auditManifest(xml),['android.permission.INTERNET']);
  for(const modified of [xml.replace('allowBackup="false"','allowBackup="true"'),xml.replace('usesCleartextTraffic="false"','usesCleartextTraffic="true"'),xml.replace('<application','<application android:debuggable="true"'),xml.replace('android.permission.INTERNET','android.permission.READ_SMS')])assert.throws(()=>auditManifest(modified));
 });
+
+test('debug audit permits only the debug flag without weakening release audit',()=>{const xml=configureManifest('<manifest><application android:allowBackup="true"/></manifest>').replace('<application','<application android:debuggable="true"');assert.doesNotThrow(()=>auditManifest(xml,{release:false}));assert.throws(()=>auditManifest(xml));});
