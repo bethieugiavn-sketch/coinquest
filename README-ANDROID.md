@@ -27,3 +27,8 @@ Tên hiển thị mới, applicationId và khóa dữ liệu cũ giữ nguyên. 
 
 Quyền nền tảng chỉ gồm INTERNET và VIBRATE. CI kiểm tra manifest sau khi hợp nhất thư viện. Không có quyền SMS, danh bạ, Trợ năng hay thông báo; chưa triển khai lời nhắc.
 
+
+## Linh thú 3D và hành trình dài hạn
+Cảnh 3D được dựng trực tiếp bằng Three.js, đóng gói cùng APK và có hình 2D dự phòng. Có 24 hình thái ở các mốc cấp 1–700, 6 vùng đất và bậc Tinh tú mỗi 100 cấp sau cấp 700. Không đặt trần Level. Xem trước bộ sưu tập không sửa lịch sử, tiền hay XP. Cảnh dừng vẽ khi ngoài màn hình hoặc app ở nền; tôn trọng thiết lập giảm chuyển động.
+Bản web một file được tạo bằng node_modules/vite/bin/vite.js build --config vite.world.config.js rồi nhúng world-dist/world.js vào HTML. Bản Android chỉ cần npm run build như workflow hiện tại.
+
