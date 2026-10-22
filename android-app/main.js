@@ -95,3 +95,5 @@ $('styleBtn').onclick=showStyles;$('closeStyle').onclick=()=>$('styleDialog').cl
 
 await loadStyle();
 try{initWorld($('heroStage'))}catch{/* Hình dự phòng vẫn hiển thị nếu cảnh anime chưa tải được. */}
+
+$('privacyBtn').onclick=()=>$('privacyDialog').showModal();$('closePrivacy').onclick=()=>$('privacyDialog').close();

@@ -1,32 +1,19 @@
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import {readFileSync,writeFileSync,readdirSync,copyFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-
-const allowed = new Set(['android.permission.INTERNET', 'android.permission.VIBRATE']);
-if (process.argv.includes('--audit')) {
-  function findManifest(path) {
-    for (const entry of readdirSync(path, { withFileTypes: true })) {
-      const file = `${path}/${entry.name}`;
-      if (entry.isDirectory()) { const result = findManifest(file); if (result) return result; }
-      else if (entry.name === 'AndroidManifest.xml') return file;
-    }
-  }
-  const path = findManifest('android/app/build/intermediates/merged_manifests');
-  assert.ok(path, 'Merged AndroidManifest.xml not found');
-  const manifest = readFileSync(path, 'utf8');
-  const names = [...manifest.matchAll(/<uses-permission\b[^>]*android:name="([^"]+)"/g)].map(m => m[1]);
-  for (const name of names) {
-    // AndroidX adds an app-scoped signature permission for internal receivers.
-    assert.ok(allowed.has(name) || name === 'io.github.bethieugiavn.coinquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION', `Unexpected permission: ${name}`);
-  }
-  assert.ok(!/BIND_ACCESSIBILITY_SERVICE/.test(manifest), 'Accessibility service is prohibited');
-  assert.match(manifest, /android:allowBackup="false"/);
-  console.log('Merged manifest audit passed:', names.join(', '));
-} else {
-  const path = 'android/app/src/main/AndroidManifest.xml';
-  let xml = readFileSync(path, 'utf8').replace('android:allowBackup="true"', 'android:allowBackup="false"');
-  // INTERNET comes from the app, VIBRATE from the Haptics plugin. No SMS,
-  // contacts, accessibility, storage or notification permissions are requested.
-  writeFileSync(path, xml);
-  const gradle = 'android/app/build.gradle';
-  writeFileSync(gradle, readFileSync(gradle, 'utf8').replace('versionCode 1', 'versionCode 6').replace('versionName "1.0"', 'versionName "1.5.0"'));
+import {configureManifest,configureGradle,auditManifest} from './release-config.mjs';
+const release=JSON.parse(readFileSync('release.json','utf8'));
+if(process.argv.includes('--audit')){
+ const variant=process.argv.includes('--release')?'release':'debug';
+ function find(path){for(const e of readdirSync(path,{withFileTypes:true})){const p=path+'/'+e.name;if(e.isDirectory()){const result=find(p);if(result)return result}else if(e.name==='AndroidManifest.xml'&&p.toLowerCase().includes('/'+variant+'/'))return p}}
+ const path=find('android/app/build/intermediates/merged_manifests');assert.ok(path,'Merged manifest missing for '+variant);
+ console.log('Manifest audit passed:',auditManifest(readFileSync(path,'utf8')).join(', '));
+}else{
+ const signed=process.argv.includes('--release');
+ if(signed)for(const n of ['TICHLOC_KEYSTORE_PATH','TICHLOC_STORE_PASSWORD','TICHLOC_KEY_ALIAS','TICHLOC_KEY_PASSWORD'])assert.ok(process.env[n],`Missing ${n}`);
+ const manifest='android/app/src/main/AndroidManifest.xml';writeFileSync(manifest,configureManifest(readFileSync(manifest,'utf8')));
+ const gradle='android/app/build.gradle';writeFileSync(gradle,configureGradle(readFileSync(gradle,'utf8'),release,signed));
+ const vars='android/variables.gradle';let text=readFileSync(vars,'utf8');
+ text=text.replace(/compileSdkVersion\s*=\s*\d+/,`compileSdkVersion = ${release.targetSdk}`).replace(/targetSdkVersion\s*=\s*\d+/,`targetSdkVersion = ${release.targetSdk}`);writeFileSync(vars,text);
+ if(signed)copyFileSync('release-signing.gradle','android/app/release-signing.gradle');
+ console.log(`Configured ${release.applicationId} ${release.versionName} (${release.versionCode}), target ${release.targetSdk}`);
 }

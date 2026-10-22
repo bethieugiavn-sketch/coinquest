@@ -1,0 +1,18 @@
+// Passwords are read only from the runner environment, never committed.
+android {
+    signingConfigs {
+        upload {
+            storeFile file(System.getenv('TICHLOC_KEYSTORE_PATH'))
+            storeType 'PKCS12'
+            storePassword System.getenv('TICHLOC_STORE_PASSWORD')
+            keyAlias System.getenv('TICHLOC_KEY_ALIAS')
+            keyPassword System.getenv('TICHLOC_KEY_PASSWORD')
+        }
+    }
+    buildTypes {
+        release {
+            debuggable false
+            signingConfig signingConfigs.upload
+        }
+    }
+}

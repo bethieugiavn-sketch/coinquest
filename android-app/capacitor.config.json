@@ -3,7 +3,8 @@
   "appName": "Tích Lộc",
   "webDir": "dist",
   "android": {
-    "backgroundColor": "#091310"
+    "backgroundColor": "#091310",
+    "webContentsDebuggingEnabled": false
   },
   "server": {
     "androidScheme": "https"
