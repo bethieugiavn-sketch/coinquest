@@ -1,0 +1,11 @@
+{
+  "appId": "io.github.bethieugiavn.coinquest",
+  "appName": "CoinQuest",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#091310"
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
