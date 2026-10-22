@@ -1,3 +1,5 @@
+import {FORMS,WORLDS,evolutionAt} from './evolution.js';
+import {initWorld} from './world.js';
 import { App } from '@capacitor/app';
 import { createSloganRotator } from './slogans.js';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
@@ -31,7 +33,23 @@ function newId(){return typeof crypto.randomUUID==='function'?crypto.randomUUID(
 async function spin(type){if(rolling)return;if(activeQuest()&&!activeQuest().done){toast('Hãy hoàn thành nhiệm vụ đang chờ trước.');return}const today=dayKey();if(type==='daily'&&(state.daily?.day===today||state.history.some(h=>h.day===today&&h.type==='daily')))return;if(type==='extra'&&!state.history.some(h=>h.day===today&&h.type==='daily'))return;const q={id:newId(),day:today,amount:randomAmount(),type,done:false},next=structuredClone(state);next[type]=q;rolling=true;if(!await commit(next)){rolling=false;return}void feedback();$('spinBtn').disabled=true;$('extraBtn').disabled=true;$('confirmBtn').disabled=true;$('amount').classList.add('rolling');const timer=setInterval(()=>$('amount').textContent=money(randomAmount()),70);await new Promise(r=>setTimeout(r,1400));clearInterval(timer);rolling=false;$('amount').classList.remove('rolling');$('spinBtn').disabled=false;$('extraBtn').disabled=false;$('confirmBtn').disabled=false;render()}
 function celebrate(levelUp){if(levelUp){$('heroStage').classList.remove('level-flash');void $('heroStage').offsetWidth;$('heroStage').classList.add('level-flash')}void feedback(levelUp);if(typeof confetti==='function'&&!matchMedia('(prefers-reduced-motion: reduce)').matches)confetti({particleCount:levelUp?180:90,spread:80,origin:{y:.65},colors:['#b9f574','#b997ff','#f6cd75']})}
 async function confirmQuest(){if(rolling)return;const q=activeQuest();if(!q||q.done||state.history.some(h=>h.id===q.id))return;const before=stats().level,next=structuredClone(state),record={...q,done:true};next[q.type]=record;next.history.push(record);if(!await commit(next))return;render();const up=stats().level>before;celebrate(up);toast(up?`Lên cấp ${stats().level}! +${q.amount/1000} XP 🎉`:`Đã tích lũy ${money(q.amount)} · +${q.amount/1000} XP ✦`)}
-function renderHero(level){const tier=level>=10?3:level>=5?2:level>=3?1:0,names=['Mầm non dũng cảm','Hộ vệ rừng xanh','Tinh linh pha lê','Vua rừng hoàng kim'];$('heroStage').dataset.tier=tier;$('heroTitle').textContent=names[tier]+' · Cấp '+level;$('heroRank').textContent='BẬC '+['I','II','III','IV'][tier];$('avatarBadge').textContent=['🌱','🌿','💎','👑'][tier];document.querySelectorAll('.evo-node').forEach(n=>n.classList.toggle('unlocked',Number(n.dataset.tier)<=tier));$('evolutionHint').textContent=tier<3?'Đạt cấp '+[3,5,10][tier]+' để mở hình thái tiếp theo.':'Bạn đã mở hình thái cao nhất. Tiếp tục chinh phục cấp độ mới!'}
+function renderHero(level){
+ const e=evolutionAt(level);window.tichLocLevel=level;
+ $('heroStage').dataset.tier=e.tier;$('heroTitle').textContent=e.name+' · Cấp '+level;
+ $('heroRank').textContent=e.stars?'✦ Tinh tú '+e.stars:'BẬC '+(e.tier+1);
+ $('avatarBadge').textContent=e.icon;
+ $('heroStage').querySelector('.stage-name .eyebrow').textContent=WORLDS[e.world];
+ $('returnHero').classList.add('hidden');
+ window.dispatchEvent(new CustomEvent('tichloc:level',{detail:{level}}));
+ $('evolutionCount').textContent=(e.tier+1)+' / 24 hình thái đã mở'+(e.stars?' · '+e.stars+' bậc Tinh tú':'');
+ $('evolutionHint').textContent=e.tier<23?'Cấp '+e.next+': '+FORMS[e.tier+1].name+' · Còn '+(e.next-level)+' cấp để tiến hóa.':'Tinh tú '+(e.stars+1)+' ở cấp '+e.next+' · Hành trình vẫn tiếp tục!';
+ $('evolutionFill').style.width=e.progress+'%';$('evolutionBar').setAttribute('aria-valuenow',Math.round(e.progress));
+ const track=$('evolutionTrack');track.replaceChildren();
+ const forms=e.tier<21?FORMS.slice(Math.max(0,e.tier-1),Math.max(0,e.tier-1)+4):FORMS.slice(20);
+ for(const f of forms){const n=document.createElement('div');n.className='evo-node'+(level>=f.level?' unlocked':'');const icon=document.createElement('span');icon.textContent=f.icon;const name=document.createElement('p');name.className='evo-name';name.textContent=f.name;const label=document.createElement('p');label.textContent='Cấp '+f.level;n.append(icon,name,label);track.append(n)}
+}
+function showCollection(){const current=stats().level,root=$('collectionGrid');root.replaceChildren();for(let world=0;world<6;world++){const label=document.createElement('p');label.className='collection-label';label.textContent=WORLDS[world];root.append(label);const grid=document.createElement('div');grid.className='collection-grid';FORMS.slice(world*4,world*4+4).forEach(f=>{const card=document.createElement('button');card.className='collection-card'+(current>=f.level?' unlocked':'');const icon=document.createElement('span');icon.className='form-icon';icon.textContent=f.icon;const title=document.createElement('strong');title.textContent=f.name;const hint=document.createElement('small');hint.textContent='Cấp '+f.level+' · '+(current>=f.level?'Đã mở':'Xem trước');card.append(icon,title,hint);card.onclick=()=>{const e=evolutionAt(f.level);$('collectionDialog').close();$('heroTitle').textContent='Xem trước · '+f.name;$('heroStage').querySelector('.stage-name .eyebrow').textContent=WORLDS[e.world];$('heroRank').textContent='CẤP '+f.level;$('returnHero').classList.remove('hidden');window.dispatchEvent(new CustomEvent('tichloc:level',{detail:{level:f.level}}));showView('dashboard');$('heroStage').scrollIntoView({behavior:'smooth',block:'center'});};grid.append(card)});root.append(grid)}$('collectionDialog').showModal()}
+$('collectionBtn').onclick=showCollection;$('closeCollection').onclick=()=>$('collectionDialog').close();$('returnHero').onclick=()=>renderHero(stats().level);
 $('copyTransfer').onclick=async()=>{const q=activeQuest();if(!q)return;const text=state.settings.bankId+' | '+state.settings.account+' | '+money(q.amount)+' | Tiet kiem ngay '+q.day;try{await navigator.clipboard.writeText(text);toast('Đã sao chép thông tin chuyển khoản.')}catch{toast('Không sao chép được. Bạn có thể lưu ảnh QR để chuyển tiền.')}};
 function toggleQrFields(){for(const id of ['bankId','account'])$(id).required=$('qrEnabled').checked}
 $('qrEnabled').onchange=toggleQrFields;
@@ -67,3 +85,5 @@ if(Capacitor.isNativePlatform()){
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refreshSlogan()});
   window.addEventListener('pageshow',e=>{if(e.persisted)void refreshSlogan()});
 }
+
+try{initWorld($('heroStage'))}catch{/* Hình 2D vẫn hiển thị nếu thiết bị không hỗ trợ 3D. */}
