@@ -1,152 +1,58 @@
-import * as THREE from 'three';
+import {ANIME_ATLAS} from './anime-art.js';
 import {evolutionAt,STYLES,gearAt} from './evolution.js';
 
-export function initWorld(stage) {
-  if(!stage)return;
-  let renderer;
-  try {renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});}catch{return;}
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
-  renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=1.25;
-  renderer.shadowMap.enabled=true;
-  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  const canvas=renderer.domElement;
-  canvas.setAttribute('role','img');canvas.setAttribute('aria-label','Linh thú 3D trên hòn đảo nổi');
-  canvas.className='world-canvas';stage.prepend(canvas);
-  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(38,1,.1,60);
-  const ambient=new THREE.HemisphereLight(0xe8ffef,0x183126,3);scene.add(ambient);
-  const sun=new THREE.DirectionalLight(0xffe5b4,4);sun.position.set(-3,7,5);sun.castShadow=true;sun.shadow.mapSize.set(512,512);sun.shadow.camera.left=-5;sun.shadow.camera.right=5;sun.shadow.camera.top=5;sun.shadow.camera.bottom=-5;scene.add(sun);
-  const rim=new THREE.PointLight(0xb9f574,18,12);rim.position.set(2,3,-2);scene.add(rim);
-  let content,hero,leaves,orbit,visible=true,angle=.17,targetAngle=.17,lastFrame=0,signature='';
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const palettes=[['#102d25','#7faf5b','#39724f','#badc81'],['#302d29','#b7a469','#6f9b55','#f2b8aa'],['#0e3441','#66b7a5','#348d8a','#a4eff1'],['#242741','#8584bd','#8779c9','#c1c4ff'],['#33404a','#a6c9bf','#8cae9f','#ffe1ad'],['#131b38','#535b88','#846dc4','#f6cf79']];
-  const material=(color,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness:metalness?.28:.67,metalness});
-  function mesh(geometry,color,parent,x=0,y=0,z=0,metalness=0){const m=new THREE.Mesh(geometry,material(color,metalness));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
-  function ball(parent,color,x,y,z,sx,sy=sx,sz=sx){const m=mesh(new THREE.SphereGeometry(1,20,14),color,parent,x,y,z);m.scale.set(sx,sy,sz);return m;}
-  function crystal(parent,color,x,y,z,size){const m=mesh(new THREE.OctahedronGeometry(size,0),color,parent,x,y,z,.25);m.scale.y=1.6;return m;}
-  function disposeGroup(group){group.traverse(o=>{o.geometry?.dispose();if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>m.dispose())}});scene.remove(group);}
-  function rebuild(level,styleId=window.tichLocStyle||'wood'){
-    const style=STYLES.find(s=>s.id===styleId)||STYLES[0],grade=gearAt(level);
-    const e=evolutionAt(level),key=e.tier+':'+e.stars+':'+style.id+':'+grade;
-    if(signature===key)return;signature=key;
-    if(content)disposeGroup(content);
-    content=new THREE.Group();scene.add(content);const [sky,ground,tree,skin]=palettes[e.world];
-    scene.background=new THREE.Color(sky);scene.fog=new THREE.Fog(sky,9,20);rim.color.set(skin);
-    mesh(new THREE.CylinderGeometry(2.65,1.8,.75,48),ground,content,0,-.55,0);
-    const island=mesh(new THREE.ConeGeometry(1.9,1.7,7),e.world===5?'#34314d':'#615e49',content,0,-1.7,0);island.rotation.z=Math.PI;
-    mesh(new THREE.CylinderGeometry(2.7,2.65,.12,48),ground,content,0,-.12,0);
-    for(let i=0;i<7;i++){
-      const a=i*1.04+.25,x=Math.sin(a)*2.03,z=Math.cos(a)*1.7;
-      if(z>1&&Math.abs(x)<1.5)continue;
-      if(e.world===3||e.world===5){crystal(content,skin,x,.45,z,.3+(i%3)*.13);crystal(content,tree,x+.22,.17,z+.18,.19);}
-      else if(e.world===4){ball(content,'#e4f0e6',x,.45,z,.5,.2,.3);ball(content,'#cfdfd9',x+.25,.34,z,.45,.18,.3);}
-      else{mesh(new THREE.CylinderGeometry(.1,.14,1.1,9),'#85633f',content,x,.35,z);if(i%2===0){ball(content,tree,x,.98,z,.58,.56,.49);ball(content,tree,x-.3,.85,z+.1,.39);ball(content,tree,x+.28,.88,z-.07,.37);}else for(let j=0;j<3;j++)mesh(new THREE.ConeGeometry(.5-j*.1,.8,9),tree,content,x,.7+j*.35,z);}
-    }
-    for(let i=0;i<12;i++){const a=i*.93;ball(content,e.world===2?'#afe4e5':i%2?'#e5cf8e':'#f0bcba',Math.sin(a)*2.25,0,Math.cos(a)*1.8,.06,.12,.06);}
-    if(e.world===2){const lake=mesh(new THREE.CylinderGeometry(.85,.85,.025,40),'#7bd7df',content,-1.25,-.03,.8,.45);lake.scale.z=.6;}
-    hero=new THREE.Group();hero.position.y=.05;hero.scale.setScalar(1.12);content.add(hero);
-    const accent=style.id==='wood'?(e.tier>=20?'#efc66c':skin):style.color;
-    const body=ball(hero,accent,0,.92,0,.56,.72,.43);
-    ball(hero,'#eaf0c4',0,1.02,.32,.45,.4,.19);
-    ball(hero,tree,-.3,.14,.12,.2,.16,.27);ball(hero,tree,.3,.14,.12,.2,.16,.27);
-    const left=ball(hero,accent,-.62,.82,.04,.15,.28,.15);left.rotation.z=-.4;
-    const right=ball(hero,accent,.62,.82,.04,.15,.28,.15);right.rotation.z=.4;
-    for(const x of [-.18,.18]){ball(hero,'#15362b',x,1.13,.505,.078,.105,.04);ball(hero,'#ffffff',x-.023,1.17,.545,.025);ball(hero,'#b7e3cc',x+.023,1.10,.54,.012);ball(hero,'#eaa498',x*1.6,.98,.478,.07,.032,.02);}
-    const smile=mesh(new THREE.TorusGeometry(.07,.012,6,16,Math.PI),'#3a6040',hero,0,1,.523);smile.rotation.z=Math.PI;
-    const belt=mesh(new THREE.TorusGeometry(.43,.055,8,32),'#467743',hero,0,.53,.05);belt.rotation.x=Math.PI/2;
-    const coin=mesh(new THREE.CylinderGeometry(.14,.14,.05,24),'#ebc45b',hero,0,.55,.46,.7);coin.rotation.x=Math.PI/2;
-    mesh(new THREE.BoxGeometry(.035,.17,.018),'#8e6c29',hero,0,.55,.495,.5);
-    leaves=new THREE.Group();hero.add(leaves);
-    mesh(new THREE.CylinderGeometry(.028,.035,.25,8),tree,leaves,0,1.67,0);
-    const leafCount=2+(e.tier%4);
-    for(let i=0;i<leafCount;i++){const a=(i/leafCount)*Math.PI*2;const leaf=ball(leaves,e.world===5?'#ffd87c':tree,Math.sin(a)*.2,1.8+Math.cos(a)*.03,Math.cos(a)*.13,.11,.29,.055);leaf.rotation.z=-Math.sin(a)*.8;leaf.rotation.x=Math.cos(a)*.7;}
-    leaves.visible=style.id==='wood';
-    const gold=grade>=2?'#efca76':'#b99250';
-    if(style.id==='wood'){
-      // Bark tunic, boots and a scalloped leaf cap echo the supplied woodland mascot.
-      mesh(new THREE.CylinderGeometry(.49,.43,.48,12),'#9b714a',hero,0,.49,.02);
-      for(let i=0;i<8;i++){const a=i*Math.PI/4;const strip=mesh(new THREE.BoxGeometry(.045,.43,.045),'#725438',hero,Math.sin(a)*.47,.49,Math.cos(a)*.39+.02);strip.rotation.y=a;}
-      for(const x of [-.3,.3])ball(hero,'#735438',x,.13,.16,.21,.17,.27);
-      for(let i=0;i<7;i++){const a=i*Math.PI*2/7;ball(hero,tree,Math.sin(a)*.36,1.5,Math.cos(a)*.28,.2,.15,.18);}
-      if(grade>=1){mesh(new THREE.CylinderGeometry(.035,.055,1.05,8),'#7d623a',hero,.78,.67,.05);ball(hero,tree,.78,1.23,.05,.17,.22,.13);}
-      if(grade>=2)for(const x of [-.55,.55])ball(hero,'#547f40',x,.85,.02,.22,.18,.25);
-      if(grade>=3)for(let i=0;i<5;i++)crystal(hero,'#ebce73',(i-2)*.15,1.62+(.12-Math.abs(i-2)*.03),.28,.055);
-    }
-    if(style.id==='knight'){
-      ball(hero,grade>=2?'#e6d6a5':'#94abb8',0,.62,.27,.47,.3,.28);
-      for(const x of [-.53,.53])ball(hero,'#788e9e',x,.91,.02,.23,.16,.22);
-      const helmet=mesh(new THREE.TorusGeometry(.45,.065,8,32),'#8096a5',hero,0,1.47,.01);helmet.rotation.x=Math.PI/2;
-      mesh(new THREE.ConeGeometry(.1,.36,5),gold,hero,0,1.75,-.1);
-      const shield=mesh(new THREE.CylinderGeometry(.29,.29,.07,6),grade>=2?gold:'#947b47',hero,-.77,.8,.23,.45);shield.rotation.x=Math.PI/2;
-      mesh(new THREE.BoxGeometry(.055,.31,.025),'#ebd99c',hero,-.77,.8,.28);
-      const blade=mesh(new THREE.BoxGeometry(.1,.65+.1*grade,.035),'#e1e9ed',hero,.8,1.05,.1,.7);blade.rotation.z=-.16;
-      mesh(new THREE.BoxGeometry(.3,.055,.08),gold,hero,.83,.72,.1,.5);
-      mesh(new THREE.CylinderGeometry(.045,.045,.2,8),'#685640',hero,.83,.61,.1);
-      if(grade>=3)for(const x of [-.55,.55])crystal(hero,'#e9cd77',x,1.04,.13,.12);
-    }
-    if(style.id==='mage'){
-      mesh(new THREE.CylinderGeometry(.39,.6,.68,18),'#6c4b91',hero,0,.46,-.04);
-      const brim=mesh(new THREE.CylinderGeometry(.59,.59,.065,32),'#76549c',hero,0,1.52,0);
-      const hat=mesh(new THREE.ConeGeometry(.4,.68+.07*grade,24),'#76549c',hero,-.07,1.88,-.03);hat.rotation.z=.18;
-      mesh(new THREE.TorusGeometry(.36,.025,6,32),gold,hero,0,1.58,.02).rotation.x=Math.PI/2;
-      mesh(new THREE.CylinderGeometry(.035,.05,1.45,8),'#9d8251',hero,.78,.92,.04);
-      const gem=crystal(hero,'#c7b3ff',.78,1.72,.04,.16+.025*grade);gem.material.emissive.set('#6546aa');gem.material.emissiveIntensity=.4;
-      if(grade>=2){const seal=mesh(new THREE.TorusGeometry(.7,.015,6,48),'#d9c1ff',hero,0,.34,.06);seal.rotation.x=Math.PI/2;}
-    }
-    if(style.id==='dragon'){
-      for(const x of [-.32,.32]){const horn=mesh(new THREE.ConeGeometry(.1,.39+.04*grade,9),gold,hero,x,1.66,-.04);horn.rotation.z=-x;}
-      const shape=new THREE.Shape();shape.moveTo(0,0);shape.lineTo(.18,.6);shape.lineTo(.8,.79);shape.lineTo(.59,.27);shape.lineTo(.32,.33);shape.lineTo(.2,.05);shape.closePath();
-      for(const side of [-1,1]){const wing=mesh(new THREE.ExtrudeGeometry(shape,{depth:.035,bevelEnabled:true,bevelSegments:1,steps:1,bevelSize:.01,bevelThickness:.01}),grade>=2?'#b9a058':'#4d9f8d',hero,side*.41,.87,-.29);wing.scale.x=side*(.9+grade*.13);wing.rotation.y=side*.3;}
-      const tailPath=new THREE.CatmullRomCurve3([new THREE.Vector3(0,.5,-.3),new THREE.Vector3(.15,.27,-.75),new THREE.Vector3(.6,.23,-.9),new THREE.Vector3(.8,.49,-.75)]);
-      mesh(new THREE.TubeGeometry(tailPath,16,.09,8,false),'#559c81',hero);crystal(hero,gold,.8,.51,-.75,.12);
-      if(grade>=1)for(const x of [-.25,0,.25])crystal(hero,gold,x,.68,.46,.07);
-    }
-    if(style.id==='mecha'){
-      const chest=mesh(new THREE.BoxGeometry(.88,.54,.55),'#758f9d',hero,0,.6,.08,.4);
-      for(const x of [-.57,.57]){ball(hero,'#7b99a6',x,.93,.03,.22,.18,.22);mesh(new THREE.BoxGeometry(.33,.18,.42),'#617e89',hero,x*.55,.13,.17,.35);}
-      const core=ball(hero,'#a3f3ed',0,.68,.39,.14,.14,.045);core.material.emissive.set('#3bc8c1');core.material.emissiveIntensity=.6;
-      mesh(new THREE.CylinderGeometry(.028,.028,.36,8),'#647b86',hero,.33,1.66,-.01,.45);ball(hero,'#a3f3ed',.33,1.88,-.01,.065);
-      for(const x of [-.33,.33]){const turbine=mesh(new THREE.CylinderGeometry(.13,.13,.45,14),'#758e9b',hero,x,.71,-.42,.4);if(grade>=1)ball(hero,'#a3eef1',x,.4,-.42,.07,.18,.07);}
-      if(grade>=2)for(const x of [-.56,.56])mesh(new THREE.BoxGeometry(.17,.3,.16),gold,hero,x,1,.15,.5);
-    }
-    // Each quartet gains a distinct accessory silhouette, not just a hue change.
-    const accessory=style.id==='wood'?e.tier%4:-1;
-    if(accessory===1){for(const x of [-.52,.52]){const petal=ball(hero,skin,x,1.56,0,.24,.08,.18);petal.rotation.z=x;}}
-    if(accessory===2){for(const x of [-.55,.55]){const wing=ball(hero,e.world===5?'#d8c1ff':'#d1e6bc',x,1.17,-.28,.35,.5,.065);wing.rotation.z=x*.7;}crystal(hero,'#e9c66b',0,1.53,.35,.08);}
-    if(accessory===3){mesh(new THREE.CylinderGeometry(.31,.27,.16,12),'#e8c15e',hero,0,1.62,0,.65);for(let i=0;i<5;i++){const a=i*Math.PI*2/5;mesh(new THREE.ConeGeometry(.065,.23,5),'#f8dc88',hero,Math.sin(a)*.25,1.8,Math.cos(a)*.25,.55);}}
-    if(e.tier>=8){for(const x of [-.4,.4])crystal(hero,skin,x,1.55,-.02,.1);}
-    if(e.tier>=12){const cape=ball(hero,tree,0,.8,-.4,.52,.66,.12);cape.rotation.x=-.2;}
-    if(e.tier>=16){for(const x of [-.68,.68])crystal(hero,'#f7ce76',x,1.06,.13,.12);}
-    orbit=new THREE.Group();orbit.position.y=1;hero.add(orbit);
-    if(e.tier>=20){const halo=mesh(new THREE.TorusGeometry(.9,.018,6,64),'#f3d184',orbit);halo.rotation.x=.7;halo.rotation.y=.3;}
-    const starCount=Math.min(10,Math.floor(e.tier/4)+e.stars);
-    for(let i=0;i<starCount;i++){const a=i*Math.PI*2/Math.max(1,starCount);crystal(orbit,'#ffe4a0',Math.cos(a)*1.02,Math.sin(a)*.65,Math.sin(a)*.3,.06);}
-    renderer.render(scene,camera);stage.classList.add('has3d');
-  }
-  function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
-  const observer=new ResizeObserver(resize);observer.observe(stage);resize();
-  let onScreen=true;const intersection=new IntersectionObserver(([entry])=>{onScreen=entry.isIntersecting;},{threshold:.02});intersection.observe(stage);
-  const update=e=>rebuild(e.detail.level,e.detail.style);window.addEventListener('tichloc:level',update);
-  const rotate=()=>{targetAngle+=Math.PI/7;};document.getElementById('rotateWorld')?.addEventListener('click',rotate);
-  let pointer=null;
-  const down=e=>{pointer={x:e.clientX,y:e.clientY};canvas.setPointerCapture?.(e.pointerId);};
-  const move=e=>{if(!pointer)return;const dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;if(Math.abs(dx)>Math.abs(dy))targetAngle-=dx*.009;pointer={x:e.clientX,y:e.clientY};};
-  const up=()=>{pointer=null;};
-  canvas.style.touchAction='pan-y';canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
-  const vis=()=>{visible=!document.hidden;};document.addEventListener('visibilitychange',vis);
-  rebuild(window.tichLocLevel||1);
-  renderer.setAnimationLoop(time=>{
-    if(!visible||!onScreen||time-lastFrame<1000/(reduced.matches?4:50))return;lastFrame=time;
-    const t=reduced.matches?0:time*.001;
-    angle+=(targetAngle-angle)*.07;
-    camera.position.set(Math.sin(angle)*7.3,3.05,Math.cos(angle)*7.3);camera.lookAt(0,.65,0);
-    hero.position.y=.06+Math.sin(t*1.7)*.045;hero.rotation.y=Math.sin(t*.7)*.07;
-    leaves.rotation.z=Math.sin(t*1.8)*.04;orbit.rotation.y=t*.15;
-    renderer.render(scene,camera);
-  });
-  const dispose=()=>{renderer.setAnimationLoop(null);observer.disconnect();intersection.disconnect();window.removeEventListener('tichloc:level',update);document.removeEventListener('visibilitychange',vis);document.getElementById('rotateWorld')?.removeEventListener('click',rotate);if(content)disposeGroup(content);renderer.dispose();canvas.remove();stage.classList.remove('has3d');};
-  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();dispose();},{once:true});
-  window.addEventListener('pagehide',e=>{if(!e.persisted)dispose();},{once:true});
-  return {dispose};
+// Illustrated 2.5D scene. All artwork is bundled, including the standalone HTML.
+export function initWorld(stage){
+ if(!stage)return;
+ const css=document.createElement('style');css.textContent=`
+ .stage.anime-scene{height:390px;perspective:900px;background:#09221e;overflow:hidden}
+ .anime-scene>.hero-art,.anime-scene>.fireflies{display:none!important}.anime-scene:before,.anime-scene:after{display:none}
+ .anime-world{position:absolute;inset:0;overflow:hidden;touch-action:pan-y;background:radial-gradient(ellipse at 50% 12%,#a3e7bf55,transparent 52%),linear-gradient(#102e30,#1c554a 65%,#0b2524);transition:background 1s}
+ .anime-world:before{content:'';position:absolute;width:320px;height:320px;left:50%;top:5px;transform:translateX(-50%);border:1px solid #e5dca244;border-radius:50%;box-shadow:0 0 65px #b8ffc91a,inset 0 0 50px #b8ffc915}
+ .anime-moon{position:absolute;left:18%;top:14%;width:55px;height:55px;border-radius:50%;background:#f4e5b7;box-shadow:0 0 65px #fff1ad66;opacity:.75}
+ .anime-forest{position:absolute;inset:32% -12% -5%;background:linear-gradient(130deg,#112c28dd,#38615188);clip-path:polygon(0 100%,0 45%,9% 8%,16% 55%,25% 0,34% 62%,43% 12%,51% 70%,67% 17%,76% 55%,88% 0,100% 52%,100% 100%);transform:translateX(var(--forest-x,0px));transition:transform .2s}
+ .anime-forest.near{inset:60% -15% -15%;background:#08251fe6;filter:blur(1px);transform:translateX(calc(var(--forest-x,0px)*-1))}
+ .anime-platform{position:absolute;left:50%;bottom:34px;width:290px;height:62px;border-radius:50%;transform:translateX(-50%);background:radial-gradient(ellipse,#c5d17e88,#7cc49444 45%,#b7e89a99 48%,#2d635a88 51%,transparent 62%);box-shadow:0 20px 35px #0003}
+ .anime-actor{position:absolute;left:50%;bottom:48px;width:190px;height:317px;transform:translateX(-50%);filter:drop-shadow(0 8px 12px #001d2280);pointer-events:none}
+ .anime-pose{width:100%;height:100%;transform-origin:50% 90%;animation:anime-breathe 5s ease-in-out infinite;transform:rotateY(var(--tilt,0deg))}
+ .anime-sprite{mask-image:linear-gradient(90deg,transparent,black 7%,black 91%,transparent);width:100%;height:100%;background-repeat:no-repeat;background-size:500% 100%;background-position:var(--sprite-x,0%) 50%}
+ .anime-aura{position:absolute;left:50%;bottom:45px;width:220px;height:260px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,var(--aura,#d3f39733),transparent 68%);filter:blur(15px);animation:anime-aura 4s ease-in-out infinite}
+ .anime-particle{position:absolute;width:3px;height:3px;border-radius:50%;background:#f6e6ac;box-shadow:0 0 10px #ffe7a9;animation:anime-particle var(--speed) ease-in-out infinite;animation-delay:var(--delay);pointer-events:none}
+ .anime-caption{position:absolute;right:13px;top:67px;font-size:9px;letter-spacing:2px;writing-mode:vertical-rl;color:#e7dbbba6;pointer-events:none}
+ .anime-spark{position:absolute;inset:0;background:radial-gradient(circle at 52% 42%,#fff8c577,transparent 40%);animation:anime-flash .65s ease-out forwards;pointer-events:none}
+ @keyframes anime-breathe{0%,100%{transform:translateY(0) rotate(-.7deg) rotateY(var(--tilt,0deg)) scale(1)}50%{transform:translateY(-7px) rotate(.7deg) rotateY(var(--tilt,0deg)) scale(1.018)}}
+ @keyframes anime-aura{50%{opacity:.5;transform:translateX(-50%) scale(1.12)}}
+ @keyframes anime-particle{0%,100%{opacity:.12;transform:translateY(12px)}50%{opacity:.9;transform:translateY(-22px)}}
+ @keyframes anime-flash{to{opacity:0;transform:scale(1.3)}}
+ .anime-pose.greet{animation:anime-greet .7s ease-in-out}
+ @keyframes anime-greet{0%,100%{transform:rotate(0)}30%{transform:translateY(-16px) rotate(-5deg)}65%{transform:translateY(-7px) rotate(4deg)}}
+ @media(prefers-reduced-motion:reduce){.anime-pose,.anime-aura,.anime-particle{animation:none}.anime-world *{transition:none}}
+ `;document.head.append(css);
+ const scene=document.createElement('div');scene.className='anime-world';scene.setAttribute('role','img');scene.setAttribute('aria-label','Linh thú anime 2.5D trong khu rừng ánh sáng');
+ scene.innerHTML='<div class="anime-moon"></div><div class="anime-forest"></div><div class="anime-aura"></div><div class="anime-platform"></div><div class="anime-actor"><div class="anime-pose"><div class="anime-sprite"></div></div></div><div class="anime-forest near"></div><span class="anime-caption">LINH THÚ · ANIME 2.5D</span>';
+ const sprite=scene.querySelector('.anime-sprite'),pose=scene.querySelector('.anime-pose');sprite.style.backgroundImage=`url("${ANIME_ATLAS}")`;
+ // Foreground stays below the character's feet.
+ scene.querySelector('.near').style.clipPath='polygon(0 100%,0 65%,12% 30%,23% 80%,36% 88%,62% 88%,78% 80%,91% 30%,100% 65%,100% 100%)';
+ for(let i=0;i<18;i++){const p=document.createElement('i');p.className='anime-particle';p.style.cssText=`left:${5+(i*37)%90}%;top:${14+(i*23)%70}%;--speed:${3+i%5}s;--delay:-${i*.7}s`;scene.append(p)}
+ stage.prepend(scene);stage.classList.add('anime-scene');
+ let tilt=0,down=null,lastKey='';
+ const palettes=['#113b30','#4a354d','#164652','#252744','#314a50','#211e45'];
+ function greet(){pose.classList.remove('greet');void pose.offsetWidth;pose.classList.add('greet');}
+ pose.addEventListener('animationend',()=>pose.classList.remove('greet'));
+ function update(level,styleId=window.tichLocStyle||'wood'){
+ const index=Math.max(0,STYLES.findIndex(s=>s.id===styleId)),e=evolutionAt(level),grade=gearAt(level),key=index+':'+e.world+':'+grade;
+ sprite.style.setProperty('--sprite-x',index*25+'%');
+ scene.style.background=`radial-gradient(ellipse at 50% 12%,#b7e7d344,transparent 55%),linear-gradient(${palettes[e.world]},#102f30)`;
+ scene.style.setProperty('--aura',['#a7f3b033','#e3cf7555','#8be6fa77','#d4abff88'][grade]);
+ if(lastKey!==key){lastKey=key;const flash=document.createElement('div');flash.className='anime-spark';scene.append(flash);flash.addEventListener('animationend',()=>flash.remove(),{once:true});greet()}
+ }
+ const onLevel=e=>update(e.detail.level,e.detail.style);window.addEventListener('tichloc:level',onLevel);
+ const turn=()=>{tilt=tilt>=12?-12:tilt+12;scene.style.setProperty('--tilt',tilt+'deg');scene.style.setProperty('--forest-x',tilt*.45+'px');greet()};
+ const button=document.getElementById('rotateWorld');if(button){button.textContent='✧ Chào linh thú';button.addEventListener('click',turn)}
+ scene.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY};scene.setPointerCapture?.(e.pointerId)});
+ scene.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.abs(dx)>Math.abs(dy)){tilt=Math.max(-18,Math.min(18,dx*.2));scene.style.setProperty('--tilt',tilt+'deg');scene.style.setProperty('--forest-x',tilt*.5+'px')}});
+ scene.addEventListener('pointerup',()=>{down=null});scene.addEventListener('pointercancel',()=>{down=null});
+ update(window.tichLocLevel||1);
+ return{dispose(){window.removeEventListener('tichloc:level',onLevel);button?.removeEventListener('click',turn);scene.remove();css.remove();stage.classList.remove('anime-scene')}};
 }
+

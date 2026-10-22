@@ -94,4 +94,4 @@ function showStyles(){const level=stats().level,root=$('styleGrid');root.replace
 $('styleBtn').onclick=showStyles;$('closeStyle').onclick=()=>$('styleDialog').close();
 
 await loadStyle();
-try{initWorld($('heroStage'))}catch{/* Hình 2D vẫn hiển thị nếu thiết bị không hỗ trợ 3D. */}
+try{initWorld($('heroStage'))}catch{/* Hình dự phòng vẫn hiển thị nếu cảnh anime chưa tải được. */}
