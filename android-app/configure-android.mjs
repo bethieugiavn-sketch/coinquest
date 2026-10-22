@@ -1,3 +1,4 @@
+import {installBranding} from './install-branding.mjs';
 import {readFileSync,writeFileSync,readdirSync,copyFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import {configureManifest,configureGradle,auditManifest} from './release-config.mjs';
@@ -9,6 +10,7 @@ if(process.argv.includes('--audit')){
  console.log('Manifest audit passed:',auditManifest(readFileSync(path,'utf8'),{release:variant==='release'}).join(', '));
 }else{
  const signed=process.argv.includes('--release');
+ installBranding();
  if(signed)for(const n of ['TICHLOC_KEYSTORE_PATH','TICHLOC_STORE_PASSWORD','TICHLOC_KEY_ALIAS','TICHLOC_KEY_PASSWORD'])assert.ok(process.env[n],`Missing ${n}`);
  const manifest='android/app/src/main/AndroidManifest.xml';writeFileSync(manifest,configureManifest(readFileSync(manifest,'utf8')));
  const gradle='android/app/build.gradle';writeFileSync(gradle,configureGradle(readFileSync(gradle,'utf8'),release,signed));
