@@ -1,0 +1,20 @@
+TÍCH LỘC — BẢN CHUẨN BỊ THỬ NGHIỆM KÍN 1.6.0 (versionCode 7)
+
+Tên: Tích Lộc
+Mô tả ngắn: Tích tiền lẻ mỗi ngày, nuôi linh thú anime và theo dõi hành trình tiết kiệm.
+Mô tả: Tạo thói quen tiết kiệm với nhiệm vụ ngẫu nhiên từ 5.000đ đến 50.000đ. Tự cất tiền hoặc tự chuyển giữa tài khoản của bạn, sau đó xác nhận để ghi vào sổ, nhận XP và duy trì chuỗi ngày. 1.000đ = 1 XP; mỗi 500 XP tăng một cấp. Khám phá năm nhánh linh thú anime, vùng đất và hào quang theo cấp. Ứng dụng không giữ tiền, không xác minh giao dịch và không bảo đảm lợi nhuận. QR VietQR là tùy chọn; khi bật, thông tin người nhận và nhiệm vụ được gửi tới dịch vụ ảnh QR. Lịch sử lưu trên thiết bị; có xuất/nhập JSON. Không có đồng bộ tài khoản.
+Ghi chú phiên bản: Bổ sung bản release có ký, chính sách riêng tư trong app và kiểm tra quyền Android. Cải thiện mô tả tiến hóa anime.
+
+TRƯỚC KHI GỬI PLAY CONSOLE
+- AAB: Tich-Loc-release.aab trong artifact Tich-Loc-Play-Release.
+- Bật Play App Signing, để Google quản lý app signing key; khóa upload đã chuẩn bị là khóa riêng.
+- Kiểm tra tên/chủ tài khoản developer, email hỗ trợ thật, nhóm đối tượng, xếp hạng nội dung và khai báo chức năng tài chính phù hợp thực tế ứng dụng theo dõi tiết kiệm. Không tự nhận là ngân hàng.
+- Chính sách riêng tư: https://bethieugiavn-sketch.github.io/coinquest/privacy.html
+- Data safety phải tính cả VietQR: QR gửi số tài khoản ngân hàng, mã ngân hàng, số tiền, nội dung ngày; bên thứ ba nhận IP kỹ thuật. Không khai chung chung “không thu thập/chia sẻ bất cứ dữ liệu nào” khi chưa rà soát vai trò xử lý của VietQR theo định nghĩa Google Play. Không có analytics hoặc quảng cáo trong bản này.
+- Cần icon cửa hàng 512×512, feature graphic 1024×500 và ít nhất 2 ảnh chụp màn hình điện thoại thật. Chưa tạo các tài nguyên cửa hàng này trong gói code.
+- Kiểm thử trên điện thoại: mở/đóng app, xác nhận nhiệm vụ, ngày hôm sau/streak, nhập JSON, xuất/share JSON, không có mạng, QR, rung, nút Back Android, mất/khôi phục dữ liệu theo bản sao. Kiểm thử nâng cấp release bằng cùng chữ ký. Không dùng dữ liệu thật để thử xóa.
+- Bản debug cũ và bản release có thể khác chữ ký; xuất JSON trước khi gỡ bản debug. APK release ký bằng upload key sẽ khác bản cài từ Play khi Google dùng app signing key riêng.
+- Với tài khoản cá nhân mới: 12 người opt-in liên tục 14 ngày, sau đó xin quyền production. Không đồng nghĩa duyệt tự động.
+
+CẬP NHẬT SAU NÀY
+Sửa android-app/release.json: tăng versionCode, đổi versionName. Giữ applicationId và cùng GitHub Secrets upload key. Workflow release chỉ chạy thủ công trên main và không tự tải lên hoặc phát hành CH Play. Không ghi mật khẩu/keystore vào repository, issue hay log.

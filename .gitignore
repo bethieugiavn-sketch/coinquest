@@ -4,3 +4,9 @@ android-app/android/
 *.keystore
 *.jks
 local.properties
+
+*.p12
+*.pfx
+*secrets*.json
+release-output/
+world-dist/
