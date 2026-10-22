@@ -15,7 +15,7 @@ jobs:
       run:
         working-directory: android-app
     env:
-      TICHLOC_KEYSTORE_PATH: ${{ runner.temp }}/tichloc-upload.p12
+      TICHLOC_KEYSTORE_PATH: ${{ github.workspace }}/android-app/tichloc-upload.p12
       TICHLOC_STORE_PASSWORD: ${{ secrets.TICHLOC_STORE_PASSWORD }}
       TICHLOC_KEY_ALIAS: ${{ secrets.TICHLOC_KEY_ALIAS }}
       TICHLOC_KEY_PASSWORD: ${{ secrets.TICHLOC_KEY_PASSWORD }}
@@ -75,3 +75,4 @@ jobs:
       - name: Remove runner signing material
         if: always()
         run: rm -f "$TICHLOC_KEYSTORE_PATH"
+
