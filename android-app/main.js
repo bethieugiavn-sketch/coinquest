@@ -67,7 +67,7 @@ let busy=false;
 for(const id of ['spinBtn','extraBtn','confirmBtn','importBtn']){const element=$(id),handler=element.onclick;element.onclick=async e=>{if(busy)return;busy=true;try{await handler(e)}catch{toast('Thao tác chưa hoàn tất. Vui lòng thử lại.')}finally{busy=false}}}
 const settingsHandler=$('settingsForm').onsubmit;$('settingsForm').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;try{await settingsHandler(e)}catch{toast('Không lưu được cài đặt.')}finally{busy=false}};
 const importHandler=$('importFile').onchange;$('importFile').onchange=async e=>{if(busy){e.target.value='';return}busy=true;try{await importHandler(e)}finally{busy=false}};
-$('loading').remove();
+
 
 
 
@@ -96,4 +96,4 @@ try{initWorld($('heroStage'))}catch{/* Hình dự phòng vẫn hiển thị nế
 
 $('privacyBtn').onclick=()=>$('privacyDialog').showModal();$('closePrivacy').onclick=()=>$('privacyDialog').close();
 
-await initOnboarding({storage:{async get(key){return (await Preferences.get({key})).value},async set(key,value){await Preferences.set({key,value})}},context:()=>({history:state.history,quest:activeQuest(),rolling}),notify:toast});
+await initOnboarding({storage:{async get(key){return (await Preferences.get({key})).value},async set(key,value){await Preferences.set({key,value})}},context:()=>({history:state.history,quest:activeQuest(),rolling}),notify:toast}).catch(()=>toast('Không mở được hướng dẫn. Bạn vẫn có thể dùng ứng dụng.')).finally(()=>$('loading')?.remove());
