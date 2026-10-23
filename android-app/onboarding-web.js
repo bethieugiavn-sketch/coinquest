@@ -1,3 +1,6 @@
+import {initSound} from './sound.js';
+const soundStorage={async get(key){return localStorage.getItem(key)},async set(key,value){localStorage.setItem(key,value)}};
+void initSound({storage:soundStorage,notify:message=>window.tichLocGuideNotify(message)});
 import {initOnboarding} from './onboarding.js';
 void initOnboarding({
  storage:{async get(key){return localStorage.getItem(key)},async set(key,value){localStorage.setItem(key,value)}},
