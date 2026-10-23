@@ -1,3 +1,4 @@
+import {initFeedback} from './feedback.js';
 import {initSound} from './sound.js';
 import {initOnboarding} from './onboarding.js';
 import {FORMS,WORLDS,evolutionAt,STYLES,GEAR_LEVELS,gearAt,styleAt} from './evolution.js';
@@ -97,6 +98,7 @@ try{initWorld($('heroStage'))}catch{/* Hình dự phòng vẫn hiển thị nế
 
 $('privacyBtn').onclick=()=>$('privacyDialog').showModal();$('closePrivacy').onclick=()=>$('privacyDialog').close();
 
+initFeedback('1.9.0');
 const sound=await initSound({storage:{async get(key){return (await Preferences.get({key})).value},async set(key,value){await Preferences.set({key,value})}},notify:toast,haptic:async name=>{if(Capacitor.isNativePlatform()){try{if(name==='level')await Haptics.notification({type:NotificationType.Success});else await Haptics.impact({style:ImpactStyle.Light})}catch{}}else try{navigator.vibrate?.(name==='level'?[35,45,55]:15)}catch{}}});
 try{await App.addListener('appStateChange',({isActive})=>sound.setActive(isActive))}catch{}
 await initOnboarding({storage:{async get(key){return (await Preferences.get({key})).value},async set(key,value){await Preferences.set({key,value})}},context:()=>({history:state.history,quest:activeQuest(),rolling}),notify:toast}).catch(()=>toast('Không mở được hướng dẫn. Bạn vẫn có thể dùng ứng dụng.')).finally(()=>$('loading')?.remove());
