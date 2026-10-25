@@ -16,6 +16,7 @@ export class SoundManager{
  if(name==='tap')note(540,.075,.25,0,'sine',280);
  if(name==='tick')note(850,.035,.13,0,'sine',650);
  if(name==='result'){note(1046,.65,.32);note(1568,.8,.15,.06)}
+ if(name==='tarot')[523,784,1046,1568].forEach((f,i)=>note(f,.9,.16,i*.13));
  if(name==='coin'){note(988,.12,.35);note(1318,.42,.32,.1)}
  if(name==='level')[523,659,784,1046,1318].forEach((f,i)=>{note(f,.55,.28,i*.12);note(f/2,.6,.09,i*.12)});
  if(name==='pet')note(400,.23,.23,0,'sine',1050);
@@ -31,7 +32,7 @@ export async function initSound({storage,haptic,notify}={}){
  document.addEventListener('pointerdown',e=>{if(e.isTrusted)manager.gesture()},{capture:true});document.addEventListener('keydown',e=>{if(e.isTrusted&&(e.key==='Enter'||e.key===' '))manager.gesture()},{capture:true});
  document.addEventListener('click',e=>{const b=e.target.closest('button,a');if(b&&!b.disabled&&!b.closest('.sound-tools')&&!['spinBtn','extraBtn','confirmBtn','rotateWorld'].includes(b.id))manager.play('tap')},true);
  document.getElementById('heroStage')?.addEventListener('pointerup',()=>manager.play('pet'));
- for(const [event,name]of [['tichloc:tick','tick'],['tichloc:result','result'],['tichloc:pet','pet']])window.addEventListener(event,()=>manager.play(name));window.addEventListener('tichloc:reward',e=>manager.play(e.detail.levelUp?'level':'coin'));
+ for(const [event,name]of [['tichloc:tick','tick'],['tichloc:result','result'],['tichloc:pet','pet'],['tichloc:tarot','tarot'],['tichloc:tarotResult','result']])window.addEventListener(event,()=>manager.play(name));window.addEventListener('tichloc:reward',e=>manager.play(e.detail.levelUp?'level':'coin'));
  document.addEventListener('visibilitychange',()=>{if(document.hidden)manager.pause();else void manager.resume()});window.addEventListener('blur',()=>{manager.focused=false;manager.pause()});window.addEventListener('focus',()=>{manager.focused=true;void manager.resume()});window.addEventListener('pagehide',()=>manager.pause());window.addEventListener('pageshow',()=>void manager.resume());return manager;
 }
 
