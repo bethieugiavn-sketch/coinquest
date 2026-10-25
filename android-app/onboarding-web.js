@@ -3,7 +3,7 @@ initTarot({context:()=>window.tichLocTarotContext(),draw:()=>window.tichLocDrawT
 import {initFeedback} from './feedback.js';
 import {initSound} from './sound.js';
 const soundStorage={async get(key){return localStorage.getItem(key)},async set(key,value){localStorage.setItem(key,value)}};
-initFeedback('2.0.0');
+initFeedback('2.1.0');
 void initSound({storage:soundStorage,notify:message=>window.tichLocGuideNotify(message)});
 import {initOnboarding} from './onboarding.js';
 void initOnboarding({

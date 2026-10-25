@@ -13,14 +13,14 @@ const entries=[
 ['Wheel of Fortune','Bánh Xe Số Phận','wheel',10,50,'Nhịp sống luôn thay đổi, nhưng bạn vẫn có thể chăm sóc phần nằm trong tầm tay. Hãy linh hoạt với kế hoạch hôm nay và giữ một khoản dự phòng nhỏ để đón thay đổi bằng tâm thế chủ động.'],
 ['Justice','Công Lý','scales',15,30,'Sự rõ ràng giúp bạn nhẹ lòng khi lựa chọn. Hãy kiểm tra thông tin, trao đổi thẳng thắn trong công việc và ghi lại khoản tích lũy trung thực; công bằng với bản thân cũng là một điều cần luyện tập.'],
 ['The Hanged Man','Người Treo Ngược','hourglass',5,15,'Một nhịp dừng không nhất thiết là bước lùi. Thử nhìn vấn đề từ góc khác trước khi tiếp tục; trì hoãn một món mua chưa cần thiết có thể mở ra khoảng thở cho mục tiêu dài hạn.'],
-['Death','Chuyển Hóa','butterfly',10,25,'Một thói quen kết thúc có thể nhường chỗ cho điều phù hợp hơn. Bạn có thể bắt đầu bằng việc bỏ một khoản chi ít giá trị và dành nguồn lực ấy cho một chương mới, dù rất nhỏ.'],
+['Death','Tử Thần','butterfly',10,25,'Một thói quen kết thúc có thể nhường chỗ cho điều phù hợp hơn. Bạn có thể bắt đầu bằng việc bỏ một khoản chi ít giá trị và dành nguồn lực ấy cho một chương mới, dù rất nhỏ.'],
 ['Temperance','Tiết Độ','cups',10,20,'Nhịp độ vừa sức thường bền hơn những lần cố gắng quá đà. Hãy cân bằng giữa làm việc, nghỉ ngơi và chi tiêu; khoản tiết kiệm hôm nay nên hỗ trợ cuộc sống, không khiến bạn bỏ qua nhu cầu thiết yếu.'],
-['The Devil','Ràng Buộc','chain',5,20,'Nhận ra một sự thôi thúc là bước đầu để bớt bị nó dẫn dắt. Hãy thử tạm dừng trước một món mua bốc đồng và chọn một hành động nhỏ giúp bạn lấy lại quyền quyết định cho mình.'],
+['The Devil','Ác Quỷ','chain',5,20,'Nhận ra một sự thôi thúc là bước đầu để bớt bị nó dẫn dắt. Hãy thử tạm dừng trước một món mua bốc đồng và chọn một hành động nhỏ giúp bạn lấy lại quyền quyết định cho mình.'],
 ['The Tower','Tòa Tháp','tower',5,15,'Khi kế hoạch đổi khác, bạn có cơ hội nhận ra nền móng nào cần được chăm sóc. Hôm nay hãy ưu tiên điều thiết yếu, làm từng việc một và cho phép mình xây lại bằng những bước vừa sức.'],
 ['The Star','Ngôi Sao','star',15,35,'Hy vọng có thể bắt đầu từ một điều rất cụ thể mà bạn làm hôm nay. Chăm sóc một mục tiêu nhỏ, chia sẻ sự tử tế và dành lại một khoản cho tương lai; bạn không cần thấy cả con đường để bước tiếp.'],
 ['The Moon','Mặt Trăng','moon',5,20,'Không phải điều gì chưa rõ cũng cần được quyết định ngay. Hãy kiểm tra lại thông tin trước khi nhận việc hoặc chi tiền, rồi dành cho mình một buổi tối nhẹ nhàng để cảm xúc được lắng xuống.'],
 ['The Sun','Mặt Trời','sun',25,50,'Hãy ghi nhận điều bạn đã làm được, dù người khác chưa nhìn thấy. Chia sẻ niềm vui trong công việc và dành một phần nhỏ cho quỹ của mình; tận hưởng hiện tại có thể song hành với chăm lo ngày mai.'],
-['Judgement','Thức Tỉnh','bell',15,40,'Nhìn lại không phải để trách mình, mà để chọn cách đi tiếp. Một bài học từ trải nghiệm cũ có thể trở thành hành động tốt hơn hôm nay, trong công việc lẫn thói quen sử dụng tiền.'],
+['Judgement','Phán Xét','bell',15,40,'Nhìn lại không phải để trách mình, mà để chọn cách đi tiếp. Một bài học từ trải nghiệm cũ có thể trở thành hành động tốt hơn hôm nay, trong công việc lẫn thói quen sử dụng tiền.'],
 ['The World','Thế Giới','world',30,50,'Một vòng hành trình trọn vẹn được tạo nên bởi nhiều bước nhỏ. Hãy ghi nhận tiến bộ, cảm ơn những người đồng hành và giữ lại một khoản vừa sức để mở đầu mục tiêu tiếp theo.']
 ];
 export const TAROT=entries.map(([en,vi,icon,min,max,message],id)=>Object.freeze({id,en,vi,icon,min:min*1000,max:max*1000,message}));
